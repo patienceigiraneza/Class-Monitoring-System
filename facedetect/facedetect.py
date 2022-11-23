@@ -1,7 +1,10 @@
 import cv2
 
-vid = cv2.VideoCapture(0)
+vid = cv2.VideoCapture('rtsp://iot:ida-12345@192.168.1.91/Streaming/channels/1')
 face_cascade= cv2.CascadeClassifier('data/haarcascade_frontalface_alt2.xml')
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read("cache/trainer.yml")
+
 
 while True:
     ret, frame = vid.read()
@@ -12,8 +15,13 @@ while True:
 
     for (x,y,w,h) in faces:
         roi_color = frame[y:y+h, x:x+w]
-        cv2.rectangle(frame, (x, y), (x+w, y+h), color, stroke)
+        roi_gray = gray[y:y+h, x:x+w]
 
+        id_, conf = recognizer.predict(roi_gray)
+
+        if conf >= 45 and conf <= 85:
+            print(id_)
+        cv2.rectangle(frame, (x, y), (x+w, y+h), color, stroke)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
